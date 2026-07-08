@@ -16,7 +16,7 @@ type Block struct {
 	PreviousHash string
 	Nonce        int
 	Hash         string
-	Difficulty int
+	
 }
 
 func (b *Block) CalculateHash() string {
@@ -27,14 +27,14 @@ func (b *Block) CalculateHash() string {
 		Transactions []ledger.Transaction
 		PreviousHash string
 		Nonce        int
-		Difficulty int
+		
 	}{
 		Index:        b.Index,
 		Timestamp:    b.Timestamp,
 		Transactions: b.Transactions,
 		PreviousHash: b.PreviousHash,
 		Nonce:        b.Nonce,
-		Difficulty: b.Difficulty,
+		
 	}
 
 	jsonBytes, err := json.Marshal(data)

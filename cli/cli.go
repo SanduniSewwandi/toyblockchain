@@ -58,12 +58,9 @@ func Run() {
 		}
 
 		tx := ledger.Transaction{
-
-			Sender: args[2],
-
+			Sender:   args[2],
 			Receiver: args[3],
-
-			Amount: amount,
+			Amount:   amount,
 		}
 
 		// Validate transaction with pending pool
@@ -138,25 +135,8 @@ func Run() {
 			return
 		}
 
-		// Default difficulty
+		// Always use the configured default difficulty.
 		difficulty := chain.DefaultDifficulty
-
-		// Custom difficulty
-		if len(args) >= 3 {
-
-			value, err := strconv.Atoi(args[2])
-
-			if err != nil {
-
-				fmt.Println(
-					"Invalid difficulty.",
-				)
-
-				return
-			}
-
-			difficulty = value
-		}
 
 		fmt.Println(
 			"Mining difficulty:",
@@ -228,34 +208,24 @@ func Run() {
 	case "demo":
 
 		tx1 := ledger.Transaction{
-
-			Sender: "Alice",
-
+			Sender:   "Alice",
 			Receiver: "Bob",
-
-			Amount: 20,
+			Amount:   20,
 		}
 
 		tx2 := ledger.Transaction{
-
-			Sender: "Bob",
-
+			Sender:   "Bob",
 			Receiver: "Charlie",
-
-			Amount: 10,
+			Amount:   10,
 		}
 
 		if err := ld.ApplyTransaction(tx1); err != nil {
-
 			fmt.Println(err)
-
 			return
 		}
 
 		if err := ld.ApplyTransaction(tx2); err != nil {
-
 			fmt.Println(err)
-
 			return
 		}
 
@@ -266,7 +236,6 @@ func Run() {
 		); err != nil {
 
 			fmt.Println(err)
-
 			return
 		}
 
@@ -277,7 +246,6 @@ func Run() {
 		); err != nil {
 
 			fmt.Println(err)
-
 			return
 		}
 
@@ -378,15 +346,11 @@ func printHelp() {
 	fmt.Println()
 
 	fmt.Println(
-		"  mine [difficulty]",
+		"  mine",
 	)
 
 	fmt.Println(
-		"      Mine pending transactions",
-	)
-
-	fmt.Println(
-		"      Example: go run main.go mine 5",
+		"      Mine pending transactions using the configured default difficulty",
 	)
 
 	fmt.Println()
