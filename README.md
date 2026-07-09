@@ -2,25 +2,29 @@
 
 A simple blockchain and ledger simulator implemented in **Go**, developed as part of the **Backend Engineering Internship – Golang Developer Assessment**.
 
-This project demonstrates the core concepts of blockchain technology, including deterministic hashing, Proof-of-Work mining, transaction validation, blockchain validation, and persistent storage, while remaining small, readable, and easy to understand.
+The project demonstrates the core concepts behind blockchain technology, including deterministic hashing, Proof-of-Work (PoW) mining, blockchain validation, ledger reconstruction, transaction validation, persistence, and command-line interaction.
+
+Rather than building a production blockchain, the objective is to implement the essential blockchain mechanisms in a clean, modular, and well-tested Go application.
 
 ---
 
 # Features
 
 - Deterministic Genesis Block
-- SHA-256 Block Hashing
+- Genesis Coinbase (Faucet) Transactions
+- SHA-256 Deterministic Block Hashing
 - Proof-of-Work (PoW) Mining
-- Configurable Mining Difficulty
+- Configurable Default Mining Difficulty
+- Difficulty Stored Per Block
 - Transaction Validation
-- Account Balance Ledger
+- Ledger Reconstructed from Blockchain Transactions
 - Overspending Protection
-- Blockchain Validation
+- Full Blockchain Validation
 - Tamper Detection
 - Pending Transaction Pool
-- JSON-based Persistence
-- Command-Line Interface
-- Unit Tests
+- JSON Persistence
+- Command-Line Interface (CLI)
+- Comprehensive Unit Tests
 
 ---
 
@@ -36,12 +40,13 @@ toyblockchain/
 ├── chain/
 │   ├── blockchain.go
 │   ├── mining.go
+│   ├── validation.go
 │   ├── storage.go
 │   ├── pending.go
-│   ├── validation.go
+│   ├── blockchain_test.go
 │   ├── mining_test.go
-│   ├── storage_test.go
-│   └── validation_test.go
+│   ├── validation_test.go
+│   └── storage_test.go
 │
 ├── cli/
 │   └── cli.go
@@ -49,13 +54,13 @@ toyblockchain/
 ├── ledger/
 │   ├── ledger.go
 │   ├── transaction.go
-│   ├── transaction_test.go
-│   └── ledger_test.go
+│   ├── ledger_test.go
+│   └── transaction_test.go
 │
 ├── main.go
-├── go.mod
 ├── blockchain.json
 ├── pending.json
+├── go.mod
 └── README.md
 ```
 
@@ -65,7 +70,7 @@ toyblockchain/
 
 - Go 1.22 or newer
 
-Check your Go version:
+Check your Go installation:
 
 ```bash
 go version
@@ -73,7 +78,7 @@ go version
 
 ---
 
-# Build
+# Building the Project
 
 Clone the repository and build the application.
 
@@ -81,7 +86,7 @@ Clone the repository and build the application.
 go build
 ```
 
-or run directly without building:
+or run directly:
 
 ```bash
 go run main.go
@@ -91,7 +96,7 @@ go run main.go
 
 # Running the Application
 
-## Display available commands
+## Show available commands
 
 ```bash
 go run main.go
@@ -102,24 +107,39 @@ go run main.go
 ## Add a transaction
 
 ```bash
-go run main.go add Alice Bob 25
+go run main.go add Alice Bob 20
 ```
+
+The transaction is validated before being added to the pending transaction pool.
+
+Validation includes:
+
+- Positive amount
+- Sender has sufficient balance
+- Pending transactions are considered
 
 ---
 
 ## Mine pending transactions
 
-Default difficulty:
-
 ```bash
 go run main.go mine
 ```
 
-Custom difficulty:
+Mining uses the configured default difficulty.
 
-```bash
-go run main.go mine 5
-```
+During mining the application displays:
+
+- Difficulty
+- Nonce
+- Generated hash
+- Mining time
+
+After mining:
+
+- A new block is appended to the blockchain.
+- The blockchain is saved to disk.
+- Pending transactions are cleared.
 
 ---
 
@@ -129,12 +149,12 @@ go run main.go mine 5
 go run main.go print
 ```
 
----
+Example output:
 
-## Validate the blockchain
-
-```bash
-go run main.go validate
+```
+SYSTEM -> Alice : 100
+SYSTEM -> Bob   : 50
+Alice  -> Bob   : 20
 ```
 
 ---
@@ -145,37 +165,76 @@ go run main.go validate
 go run main.go balance
 ```
 
+Example:
+
+```
+Alice : 80
+Bob   : 70
+```
+
 ---
 
-## Run the demonstration
+## Validate the blockchain
+
+```bash
+go run main.go validate
+```
+
+Example:
+
+```
+Valid : true
+
+Message: Chain is valid
+```
+
+---
+
+## Demonstration Mode
 
 ```bash
 go run main.go demo
 ```
 
-The demo:
+The demonstration automatically:
 
-- Creates sample transactions
+- Creates transactions
 - Mines blocks
 - Prints the blockchain
-- Prints ledger balances
-- Demonstrates tamper detection
+- Displays balances
+- Demonstrates blockchain tampering
+- Runs validation before and after tampering
 
 ---
 
 # Running Tests
 
-Execute all unit tests using:
+Run every unit test:
 
 ```bash
 go test ./...
 ```
 
+The test suite covers:
+
+- Deterministic hashing
+- Block creation
+- Genesis block creation
+- Genesis coinbase balances
+- Mining
+- Proof-of-Work validation
+- Nonce reproduction
+- Blockchain validation
+- Tamper detection
+- Transaction validation
+- Overspending rejection
+- Persistence
+
 ---
 
 # Design Decisions
 
-## Blockchain
+## Block Structure
 
 Each block contains:
 
@@ -184,33 +243,59 @@ Each block contains:
 - Transactions
 - Previous Hash
 - Nonce
+- Difficulty
 - Hash
 
-The blockchain starts with a deterministic genesis block whose previous hash consists of 64 zero characters.
+The hash field is excluded from hash calculation.
 
 ---
 
-## Hashing
+## Genesis Block
 
-Each block hash is generated using SHA-256.
+The blockchain starts with a deterministic genesis block.
 
-The following fields are included in the hash calculation:
+Its previous hash is a fixed value consisting of 64 zero characters.
+
+Unlike later blocks, the genesis block contains two special coinbase (faucet) transactions that introduce the initial currency supply into the blockchain.
+
+```
+SYSTEM → Alice : 100
+
+SYSTEM → Bob : 50
+```
+
+These transactions allow the ledger to reconstruct balances entirely from blockchain data.
+
+---
+
+## Deterministic Hashing
+
+Each block hash is computed using SHA-256 over a deterministic JSON serialization of the following fields:
 
 1. Index
 2. Timestamp
 3. Transactions
 4. PreviousHash
 5. Nonce
+6. Difficulty
 
-The Hash field itself is intentionally excluded to ensure deterministic hashing.
+The Hash field itself is intentionally excluded.
+
+This guarantees that hashing the same block twice always produces the same hash.
 
 ---
 
-## Mining
+## Proof-of-Work Mining
 
-Proof-of-Work mining repeatedly increments the nonce until the generated SHA-256 hash begins with the required number of leading zeros.
+Mining repeatedly changes the nonce until the generated SHA-256 hash satisfies the required difficulty target.
 
-The mining difficulty is configurable through the command line.
+The default mining difficulty is defined by:
+
+```go
+chain.DefaultDifficulty
+```
+
+Each mined block stores the difficulty used during mining.
 
 Mining reports:
 
@@ -223,61 +308,85 @@ Mining reports:
 
 ## Ledger
 
-Account balances are reconstructed directly from the blockchain by replaying every transaction from the genesis block.
+The application does **not** permanently store balances.
 
-Initial balances are introduced using a faucet mechanism:
+Instead, every balance is reconstructed by replaying all blockchain transactions beginning from the genesis block.
 
-- Alice: 100
-- Bob: 50
+The genesis block introduces the initial balances through coinbase transactions.
 
-Transactions are rejected if:
+Current initial balances:
 
-- Amount is less than or equal to zero
+| Account | Initial Balance |
+|----------|----------------:|
+| Alice | 100 |
+| Bob | 50 |
+
+Transactions are rejected when:
+
+- Amount ≤ 0
 - Sender has insufficient balance
+
+This design ensures that account balances are always derived from blockchain history rather than maintained separately.
 
 ---
 
-## Validation
+## Blockchain Validation
 
-Blockchain validation checks:
+Validation verifies the entire blockchain.
 
-- Block hash integrity
-- Previous hash links
-- Sequential block indexes
-- Timestamp consistency
-- Proof-of-Work difficulty
+For every block it checks:
 
-Any tampering with a block causes validation to fail and identifies the first invalid block.
+- Stored hash equals recalculated hash
+- Previous hash links are correct
+- Block indexes are sequential
+- Timestamps are consistent
+- Proof-of-Work satisfies the stored difficulty
+
+Validation immediately reports the first invalid block if any error is detected.
 
 ---
 
 ## Persistence
 
-The application stores data in JSON files.
+Blockchain data is stored as JSON.
 
-Files:
+Files used:
 
-- `blockchain.json` — blockchain data
-- `pending.json` — pending transaction pool
+```
+blockchain.json
+```
 
-The blockchain and pending transactions are automatically loaded when the application starts.
+Stores every block.
+
+```
+pending.json
+```
+
+Stores pending transactions waiting to be mined.
+
+Both files are automatically loaded when the application starts.
+
+
+
 
 ---
 
 # Known Limitations
 
-This project is intended for educational purposes and does not implement several features found in production blockchains.
+This project is intended as an educational blockchain simulator.
 
-Not implemented:
+The following production blockchain features are intentionally omitted:
 
 - Peer-to-peer networking
 - Distributed consensus
-- Digital signatures
 - Public/private key cryptography
+- Digital signatures
 - Wallet management
-- Merkle Trees
+- Merkle trees
 - Smart contracts
 - Automatic difficulty adjustment
+- Mining rewards beyond genesis coinbase transactions
+- Chain forks
 - Fork resolution
 
 ---
@@ -287,20 +396,41 @@ Not implemented:
 - Go 1.22+
 - Standard Library
 
-Packages used include:
+Packages include:
 
 - crypto/sha256
 - encoding/json
 - encoding/hex
+- fmt
 - os
-- time
 - strings
+- strconv
 - testing
+- time
 
 No third-party libraries were used.
 
 ---
 
+# Assessment Notes
+
+This project was implemented to satisfy the Backend Engineering Internship Golang Developer Assessment.
+
+Key implementation decisions include:
+
+- Deterministic genesis block.
+- Initial balances created using genesis coinbase transactions.
+- Ledger reconstructed entirely from blockchain history.
+- SHA-256 deterministic hashing.
+- Proof-of-Work mining with configurable default difficulty.
+- Difficulty stored inside each block.
+- Validation uses each block's stored difficulty.
+- Full blockchain persistence using JSON.
+- Command-line interface for all required operations.
+- Unit tests covering the required functionality.
+
+---
+
 # Author
 
-Developed as part of the **Golang Developer Assessment** for a Backend Engineering Internship.
+Developed as part of the **Backend Engineering Internship – Golang Developer Assessment** using the Go programming language.

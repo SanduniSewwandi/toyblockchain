@@ -1,1 +1,7 @@
-[]
+[
+    {
+        "Sender": "Alice",
+        "Receiver": "Bob",
+        "Amount": 5
+    }
+]
