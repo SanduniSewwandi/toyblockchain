@@ -11,7 +11,6 @@ import (
 func TestMineBlock(t *testing.T) {
 
 	tx := []ledger.Transaction{
-
 		{
 			Sender:   "Alice",
 			Receiver: "Bob",
@@ -19,20 +18,21 @@ func TestMineBlock(t *testing.T) {
 		},
 	}
 
+	difficulty := 2
+
 	b := block.NewBlock(
 		1,
 		tx,
 		"previous_hash",
+		difficulty,
 	)
-
-	difficulty := 2
 
 	MineBlock(
 		&b,
 		difficulty,
 	)
 
-	// Hash should not be empty
+	// Hash should not be empty.
 	if b.Hash == "" {
 
 		t.Error(
@@ -40,10 +40,26 @@ func TestMineBlock(t *testing.T) {
 		)
 	}
 
-	// Hash should satisfy difficulty
-	target := strings.Repeat("0", difficulty)
+	// Difficulty should be stored.
+	if b.Difficulty != difficulty {
 
-	if !strings.HasPrefix(b.Hash, target) {
+		t.Errorf(
+			"Expected difficulty %d, got %d",
+			difficulty,
+			b.Difficulty,
+		)
+	}
+
+	// Hash should satisfy difficulty.
+	target := strings.Repeat(
+		"0",
+		difficulty,
+	)
+
+	if !strings.HasPrefix(
+		b.Hash,
+		target,
+	) {
 
 		t.Errorf(
 			"Hash %s does not satisfy difficulty %d",
@@ -51,23 +67,25 @@ func TestMineBlock(t *testing.T) {
 			difficulty,
 		)
 	}
-
 }
 
-// Test nonce changes during mining
+// Test nonce changes during mining.
 func TestMineBlockChangesNonce(t *testing.T) {
+
+	difficulty := 2
 
 	b := block.NewBlock(
 		1,
 		[]ledger.Transaction{},
 		"previous_hash",
+		difficulty,
 	)
 
 	initialNonce := b.Nonce
 
 	MineBlock(
 		&b,
-		2,
+		difficulty,
 	)
 
 	if b.Nonce == initialNonce {
@@ -76,19 +94,19 @@ func TestMineBlockChangesNonce(t *testing.T) {
 			"Nonce remained 0, possible but rare",
 		)
 	}
-
 }
 
-// Test different difficulty levels
+// Test different difficulty levels.
 func TestDifferentDifficulty(t *testing.T) {
+
+	difficulty := 3
 
 	b := block.NewBlock(
 		1,
 		[]ledger.Transaction{},
 		"previous_hash",
+		difficulty,
 	)
-
-	difficulty := 3
 
 	MineBlock(
 		&b,
@@ -111,28 +129,35 @@ func TestDifferentDifficulty(t *testing.T) {
 		)
 	}
 
+	if b.Difficulty != difficulty {
+
+		t.Errorf(
+			"Expected stored difficulty %d, got %d",
+			difficulty,
+			b.Difficulty,
+		)
+	}
 }
 
 // Test that the mined nonce reproduces the exact stored hash.
 func TestNonceReproducesMinedHash(t *testing.T) {
 
+	difficulty := 3
+
 	b := block.NewBlock(
 		1,
 		[]ledger.Transaction{},
 		"previous_hash",
+		difficulty,
 	)
-
-	difficulty := 3
 
 	MineBlock(
 		&b,
 		difficulty,
 	)
 
-
 	// Recalculate hash using the mined nonce.
 	recalculatedHash := b.CalculateHash()
-
 
 	// The recalculated hash must equal the stored hash.
 	if recalculatedHash != b.Hash {

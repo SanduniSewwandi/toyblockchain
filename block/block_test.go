@@ -21,6 +21,7 @@ func TestNewBlock(t *testing.T) {
 		1,
 		txs,
 		"0000previoushash",
+		4,
 	)
 
 	// Check index
@@ -45,6 +46,15 @@ func TestNewBlock(t *testing.T) {
 		t.Errorf(
 			"Expected 1 transaction, got %d",
 			len(block.Transactions),
+		)
+	}
+
+	// Check difficulty
+	if block.Difficulty != 4 {
+
+		t.Errorf(
+			"Expected difficulty 4, got %d",
+			block.Difficulty,
 		)
 	}
 
@@ -87,6 +97,8 @@ func TestCalculateHash(t *testing.T) {
 		PreviousHash: "abc",
 
 		Nonce: 0,
+
+		Difficulty: 4,
 	}
 
 	hash1 := block.CalculateHash()
@@ -130,6 +142,8 @@ func TestHashChangesWhenDataChanges(t *testing.T) {
 		PreviousHash: "abc",
 
 		Nonce: 0,
+
+		Difficulty: 4,
 	}
 
 	oldHash := block.CalculateHash()
@@ -162,6 +176,8 @@ func TestHashFieldNotIncluded(t *testing.T) {
 
 		Nonce: 5,
 
+		Difficulty: 4,
+
 		Hash: "randomhash",
 	}
 
@@ -175,6 +191,38 @@ func TestHashFieldNotIncluded(t *testing.T) {
 
 		t.Error(
 			"Hash calculation should ignore Hash field",
+		)
+	}
+}
+
+// Test that changing difficulty changes the hash
+func TestHashChangesWhenDifficultyChanges(t *testing.T) {
+
+	block := Block{
+
+		Index: 1,
+
+		Timestamp: 1000,
+
+		Transactions: []ledger.Transaction{},
+
+		PreviousHash: "abc",
+
+		Nonce: 0,
+
+		Difficulty: 4,
+	}
+
+	hash1 := block.CalculateHash()
+
+	block.Difficulty = 5
+
+	hash2 := block.CalculateHash()
+
+	if hash1 == hash2 {
+
+		t.Error(
+			"Hash should change when difficulty changes",
 		)
 	}
 }

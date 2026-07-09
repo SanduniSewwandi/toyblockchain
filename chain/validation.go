@@ -7,13 +7,11 @@ import (
 
 func (bc *Blockchain) ValidateChain() (bool, string) {
 
-	// Use default mining difficulty
-	target := strings.Repeat("0", DefaultDifficulty)
-
 	for i := 0; i < len(bc.Blocks); i++ {
 
 		current := bc.Blocks[i]
 
+		// Verify block hash
 		if current.CalculateHash() != current.Hash {
 
 			return false, fmt.Sprintf(
@@ -22,6 +20,7 @@ func (bc *Blockchain) ValidateChain() (bool, string) {
 			)
 		}
 
+		// Genesis block checks
 		if i == 0 {
 
 			if current.Index != 0 {
@@ -30,11 +29,18 @@ func (bc *Blockchain) ValidateChain() (bool, string) {
 					"Genesis block has invalid index"
 			}
 
+			if current.PreviousHash != GenesisPreviousHash {
+
+				return false,
+					"Genesis block has invalid previous hash"
+			}
+
 			continue
 		}
 
 		previous := bc.Blocks[i-1]
 
+		// Verify previous hash link
 		if current.PreviousHash != previous.Hash {
 
 			return false, fmt.Sprintf(
@@ -43,6 +49,7 @@ func (bc *Blockchain) ValidateChain() (bool, string) {
 			)
 		}
 
+		// Verify block index
 		if current.Index != previous.Index+1 {
 
 			return false, fmt.Sprintf(
@@ -51,7 +58,7 @@ func (bc *Blockchain) ValidateChain() (bool, string) {
 			)
 		}
 
-		// 5. Verify timestamp order
+		// Verify timestamp order
 		if current.Timestamp < previous.Timestamp {
 
 			return false, fmt.Sprintf(
@@ -60,8 +67,16 @@ func (bc *Blockchain) ValidateChain() (bool, string) {
 			)
 		}
 
-		// 6. Verify Proof-of-Work
-		if !strings.HasPrefix(current.Hash, target) {
+		// Verify Proof-of-Work using THIS BLOCK'S difficulty
+		target := strings.Repeat(
+			"0",
+			current.Difficulty,
+		)
+
+		if !strings.HasPrefix(
+			current.Hash,
+			target,
+		) {
 
 			return false, fmt.Sprintf(
 				"Block %d: invalid proof-of-work",

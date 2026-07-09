@@ -11,17 +11,17 @@ import (
 
 func Run() {
 
-	// Load blockchain from disk
+	// Load blockchain from disk.
 	blockchain, err := chain.LoadFromFile(chain.DefaultBlockchainFile)
 	if err != nil {
 		fmt.Println("Error loading blockchain:", err)
 		return
 	}
 
-	// Build ledger from blockchain
+	// Build ledger from blockchain.
 	ld := blockchain.BuildLedger()
 
-	// Load pending transactions
+	// Load pending transactions.
 	pendingTransactions, err := chain.LoadPending(chain.DefaultPendingFile)
 	if err != nil {
 		fmt.Println("Error loading pending transactions:", err)
@@ -42,17 +42,12 @@ func Run() {
 		if len(args) != 5 {
 
 			fmt.Println("Usage:")
-			fmt.Println(
-				"go run main.go add <sender> <receiver> <amount>",
-			)
-
+			fmt.Println("go run main.go add <sender> <receiver> <amount>")
 			return
 		}
 
 		amount, err := strconv.ParseFloat(args[4], 64)
-
 		if err != nil {
-
 			fmt.Println("Invalid amount.")
 			return
 		}
@@ -63,45 +58,38 @@ func Run() {
 			Amount:   amount,
 		}
 
-		// Validate transaction with pending pool
-
-		// Create temporary ledger copy
+		// Create a temporary ledger.
 		tempLedger := ld.Clone()
 
-		// Apply all existing pending transactions first
+		// Apply all pending transactions first.
 		for _, pendingTx := range pendingTransactions {
 
-			err := tempLedger.ApplyTransaction(pendingTx)
-
-			if err != nil {
+			if err := tempLedger.ApplyTransaction(pendingTx); err != nil {
 
 				fmt.Println(
 					"Invalid pending transaction:",
 					err,
 				)
-
 				return
 			}
 		}
 
-		// Test the new transaction
+		// Validate the new transaction.
 		if err := tempLedger.ApplyTransaction(tx); err != nil {
 
 			fmt.Println(
 				"Transaction rejected:",
 				err,
 			)
-
 			return
 		}
 
-		// Add to pending pool
+		// Add transaction to pending pool.
 		pendingTransactions = append(
 			pendingTransactions,
 			tx,
 		)
 
-		// Save pending transactions
 		if err := chain.SavePending(
 			chain.DefaultPendingFile,
 			pendingTransactions,
@@ -111,14 +99,10 @@ func Run() {
 				"Error saving pending transaction:",
 				err,
 			)
-
 			return
 		}
 
-		fmt.Println(
-			"Transaction added to pending pool.",
-		)
-
+		fmt.Println("Transaction added to pending pool.")
 		fmt.Printf(
 			"Pending transactions: %d\n",
 			len(pendingTransactions),
@@ -131,7 +115,6 @@ func Run() {
 			fmt.Println(
 				"No pending transactions to mine.",
 			)
-
 			return
 		}
 
@@ -143,7 +126,6 @@ func Run() {
 			difficulty,
 		)
 
-		// Mine block
 		if err := blockchain.AddBlock(
 			pendingTransactions,
 			difficulty,
@@ -153,20 +135,15 @@ func Run() {
 				"Failed to mine block:",
 				err,
 			)
-
 			return
 		}
 
-		fmt.Println(
-			"Block mined successfully.",
-		)
-
+		fmt.Println("Block mined successfully.")
 		fmt.Println(
 			"Blockchain saved to",
 			chain.DefaultBlockchainFile,
 		)
 
-		// Clear pending transactions
 		if err := chain.ClearPending(
 			chain.DefaultPendingFile,
 		); err != nil {
@@ -175,7 +152,6 @@ func Run() {
 				"Error clearing pending transactions:",
 				err,
 			)
-
 			return
 		}
 
@@ -187,19 +163,9 @@ func Run() {
 
 		valid, message := blockchain.ValidateChain()
 
-		fmt.Println(
-			"========== VALIDATION ==========",
-		)
-
-		fmt.Println(
-			"Valid  :",
-			valid,
-		)
-
-		fmt.Println(
-			"Message:",
-			message,
-		)
+		fmt.Println("========== VALIDATION ==========")
+		fmt.Println("Valid  :", valid)
+		fmt.Println("Message:", message)
 
 	case "balance":
 
@@ -229,7 +195,6 @@ func Run() {
 			return
 		}
 
-		// Mine first block
 		if err := blockchain.AddBlock(
 			[]ledger.Transaction{tx1},
 			chain.DefaultDifficulty,
@@ -239,7 +204,6 @@ func Run() {
 			return
 		}
 
-		// Mine second block
 		if err := blockchain.AddBlock(
 			[]ledger.Transaction{tx2},
 			chain.DefaultDifficulty,
@@ -249,59 +213,30 @@ func Run() {
 			return
 		}
 
-		// Rebuild ledger
 		ld = blockchain.BuildLedger()
 
 		blockchain.Print()
-
 		ld.Print()
 
 		valid, message := blockchain.ValidateChain()
 
-		fmt.Println(
-			"\n========== VALIDATION (BEFORE TAMPERING) ==========",
-		)
+		fmt.Println("\n========== VALIDATION (BEFORE TAMPERING) ==========")
+		fmt.Println("Valid:", valid)
+		fmt.Println("Message:", message)
 
-		fmt.Println(
-			"Valid:",
-			valid,
-		)
+		fmt.Println("\nTampering with Block 1 transaction...")
 
-		fmt.Println(
-			"Message:",
-			message,
-		)
-
-		fmt.Println(
-			"\nTampering with Block 1 transaction...",
-		)
-
-		blockchain.Blocks[1].
-			Transactions[0].
-			Amount = 9999
+		blockchain.Blocks[1].Transactions[0].Amount = 9999
 
 		valid, message = blockchain.ValidateChain()
 
-		fmt.Println(
-			"\n========== VALIDATION (AFTER TAMPERING) ==========",
-		)
-
-		fmt.Println(
-			"Valid:",
-			valid,
-		)
-
-		fmt.Println(
-			"Message:",
-			message,
-		)
+		fmt.Println("\n========== VALIDATION (AFTER TAMPERING) ==========")
+		fmt.Println("Valid:", valid)
+		fmt.Println("Message:", message)
 
 	default:
 
-		fmt.Println(
-			"Unknown command.",
-		)
-
+		fmt.Println("Unknown command.")
 		printHelp()
 	}
 }
@@ -309,77 +244,35 @@ func Run() {
 // printHelp displays available commands.
 func printHelp() {
 
-	fmt.Println(
-		"===================================",
-	)
-
-	fmt.Println(
-		"Toy Blockchain CLI",
-	)
-
-	fmt.Println(
-		"===================================",
-	)
-
+	fmt.Println("===================================")
+	fmt.Println("Toy Blockchain CLI")
+	fmt.Println("===================================")
 	fmt.Println()
 
 	fmt.Println("Commands:")
-
 	fmt.Println()
 
 	fmt.Println("  demo")
-
-	fmt.Println(
-		"      Run complete demonstration",
-	)
-
+	fmt.Println("      Run complete demonstration")
 	fmt.Println()
 
-	fmt.Println(
-		"  add <sender> <receiver> <amount>",
-	)
-
-	fmt.Println(
-		"      Add transaction to pending pool",
-	)
-
+	fmt.Println("  add <sender> <receiver> <amount>")
+	fmt.Println("      Add transaction to pending pool")
 	fmt.Println()
 
-	fmt.Println(
-		"  mine",
-	)
-
-	fmt.Println(
-		"      Mine pending transactions using the configured default difficulty",
-	)
-
+	fmt.Println("  mine")
+	fmt.Println("      Mine pending transactions")
+	fmt.Printf("      Uses configured difficulty (%d)\n", chain.DefaultDifficulty)
 	fmt.Println()
 
-	fmt.Println(
-		"  print",
-	)
-
-	fmt.Println(
-		"      Display blockchain",
-	)
-
+	fmt.Println("  print")
+	fmt.Println("      Display blockchain")
 	fmt.Println()
 
-	fmt.Println(
-		"  validate",
-	)
-
-	fmt.Println(
-		"      Validate blockchain integrity",
-	)
-
+	fmt.Println("  validate")
+	fmt.Println("      Validate blockchain integrity")
 	fmt.Println()
 
-	fmt.Println(
-		"  balance",
-	)
-
-	fmt.Println(
-		"      Display ledger balances",
-	)
+	fmt.Println("  balance")
+	fmt.Println("      Display ledger balances")
 }

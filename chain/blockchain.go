@@ -36,6 +36,7 @@ func NewBlockchain() *Blockchain {
 		0,
 		genesisTransactions,
 		GenesisPreviousHash,
+		DefaultDifficulty,
 	)
 
 	return &Blockchain{
@@ -53,6 +54,7 @@ func (bc *Blockchain) GetLatestBlock() block.Block {
 	return bc.Blocks[len(bc.Blocks)-1]
 }
 
+// AddBlock mines a new block and appends it to the chain.
 func (bc *Blockchain) AddBlock(
 	transactions []ledger.Transaction,
 	difficulty int,
@@ -64,6 +66,7 @@ func (bc *Blockchain) AddBlock(
 		latest.Index+1,
 		transactions,
 		latest.Hash,
+		difficulty,
 	)
 
 	// Mine block using selected difficulty.
@@ -99,6 +102,7 @@ func (bc *Blockchain) Print() {
 		fmt.Printf("Previous Hash : %s\n", b.PreviousHash)
 		fmt.Printf("Hash          : %s\n", b.Hash)
 		fmt.Printf("Nonce         : %d\n", b.Nonce)
+		fmt.Printf("Difficulty    : %d\n", b.Difficulty)
 
 		fmt.Println("Transactions:")
 
@@ -149,7 +153,6 @@ func (bc *Blockchain) BuildLedger() *ledger.Ledger {
 					"Warning:",
 					err,
 				)
-
 			}
 		}
 	}
