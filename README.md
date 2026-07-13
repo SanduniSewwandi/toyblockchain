@@ -71,7 +71,7 @@ toyblockchain/
 
 # Requirements
 
-- Go 1.26 or newer (per `go.mod`)
+- Go 1.22 or newer (per `go.mod`)
 
 Check your Go installation:
 
@@ -335,7 +335,7 @@ Additionally, worth being explicit about:
 
 # Technologies Used
 
-- Go 1.26+
++- Go 1.22+
 - Standard library only: `crypto/sha256`, `encoding/json`, `encoding/hex`, `flag`, `fmt`, `os`, `strconv`, `strings`, `testing`, `time`
 
 No third-party libraries were used.
