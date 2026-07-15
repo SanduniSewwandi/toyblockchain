@@ -2,13 +2,12 @@ package chain
 
 import (
 	"fmt"
-
+	"strings"
 	"toyblockchain/block"
 	"toyblockchain/ledger"
 )
 
-// GenesisPreviousHash is the fixed previous hash used by the genesis block.
-const GenesisPreviousHash = "0000000000000000000000000000000000000000000000000000000000000000"
+var GenesisPreviousHash = strings.Repeat("0", 64)
 
 const GenesisTimestamp int64 = 0
 
