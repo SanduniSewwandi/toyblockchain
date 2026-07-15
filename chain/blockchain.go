@@ -72,7 +72,6 @@ func (bc *Blockchain) AddBlock(
 		)
 	}
 
-	
 	nextDifficulty := NextDifficultyFor(bc, difficulty)
 
 	latest := bc.GetLatestBlock()
@@ -84,7 +83,6 @@ func (bc *Blockchain) AddBlock(
 		nextDifficulty,
 	)
 
-	
 	MineBlockConcurrent(
 		&newBlock,
 		nextDifficulty,

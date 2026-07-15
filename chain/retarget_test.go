@@ -91,7 +91,6 @@ func TestNoRetargetBeforeInterval(t *testing.T) {
 	}
 }
 
-
 func TestNextDifficultyForHonorsRequestBeforeRetargeting(t *testing.T) {
 
 	bc := createTestBlockchain(4, []int64{
@@ -108,7 +107,6 @@ func TestNextDifficultyForHonorsRequestBeforeRetargeting(t *testing.T) {
 		)
 	}
 }
-
 
 func TestNextDifficultyForIgnoresRequestAfterRetargeting(t *testing.T) {
 

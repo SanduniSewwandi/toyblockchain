@@ -262,7 +262,6 @@ func run(args []string) {
 			}
 		}
 
-		
 		nextDifficulty := chain.NextDifficultyFor(blockchain, chain.DefaultDifficulty)
 
 		fmt.Println(
