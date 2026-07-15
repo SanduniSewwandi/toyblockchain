@@ -43,7 +43,6 @@ func CalculateNextDifficulty(bc *Blockchain) int {
 	return next
 }
 
-
 func NextDifficultyFor(bc *Blockchain, requestedDifficulty int) int {
 
 	if len(bc.Blocks) > RetargetInterval {
