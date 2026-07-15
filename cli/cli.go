@@ -68,8 +68,6 @@ func run(args []string) {
 		}
 	}
 
-	// Load wallet (named accounts and their key pairs). Created fresh
-	// with no accounts if this is the first run.
 	w, err := wallet.LoadWallet(wallet.DefaultWalletFile)
 
 	if err != nil {
@@ -137,8 +135,6 @@ func run(args []string) {
 			return
 		}
 
-		// Look up (or create, on first use) the sender's key pair, and
-		// sign the transaction with it.
 		senderKeys, err := w.GetOrCreate(args[1])
 
 		if err != nil {
@@ -266,9 +262,12 @@ func run(args []string) {
 			}
 		}
 
+		
+		nextDifficulty := chain.NextDifficultyFor(blockchain, chain.DefaultDifficulty)
+
 		fmt.Println(
 			"Mining difficulty:",
-			chain.DefaultDifficulty,
+			nextDifficulty,
 		)
 
 		err := blockchain.AddBlock(
@@ -482,7 +481,7 @@ func printHelp() {
 	fmt.Println("Flags:")
 
 	fmt.Println(
-		" -difficulty=N   Mining difficulty",
+		" -difficulty=N   Mining difficulty (leading zeroes) — honored until enough history exists to retarget automatically",
 	)
 
 	fmt.Println(

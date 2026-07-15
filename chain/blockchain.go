@@ -72,20 +72,22 @@ func (bc *Blockchain) AddBlock(
 		)
 	}
 
+	
+	nextDifficulty := NextDifficultyFor(bc, difficulty)
+
 	latest := bc.GetLatestBlock()
 
 	newBlock := block.NewBlock(
 		latest.Index+1,
 		transactions,
 		latest.Hash,
-		difficulty,
+		nextDifficulty,
 	)
 
-	// Transactions -> Merkle Root -> Hash -> Proof of Work (mined
-	// concurrently across all available CPU cores).
+	
 	MineBlockConcurrent(
 		&newBlock,
-		difficulty,
+		nextDifficulty,
 		DefaultMiningWorkers,
 	)
 
