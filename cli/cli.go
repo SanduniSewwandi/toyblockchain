@@ -262,18 +262,10 @@ func run(args []string) {
 			}
 		}
 
-		nextDifficulty := chain.CalculateNextDifficulty(blockchain)
+		nextDifficulty := chain.NextDifficultyFor(blockchain, chain.DefaultDifficulty)
+		fmt.Println("Mining difficulty:", nextDifficulty)
 
-		fmt.Println(
-			"Mining difficulty:",
-			nextDifficulty,
-		)
-
-		err := blockchain.AddBlock(
-			toMine,
-			chain.DefaultDifficulty,
-		)
-
+		err := blockchain.AddBlock(toMine, nextDifficulty)
 		if err != nil {
 
 			fmt.Println(
